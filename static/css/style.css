@@ -1,0 +1,40 @@
+/* style.css */
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+}
+
+button {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #007bff;
+}
+
+.border-red-500 {
+    border-color: #e3342f !important;
+}
+
+input, textarea {
+    transition: border-color 0.3s ease;
+}
+
+input:focus, textarea:focus {
+    border-color: #3490dc;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.hidden {
+    display: none;
+}

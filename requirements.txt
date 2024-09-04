@@ -1,0 +1,6 @@
+torch
+transformers
+flask
+numpy<2
+sentencepiece
+fpdf

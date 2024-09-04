@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Generator - ATLAS SkillTech Placement Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position above the text */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .border-red-500 {
+            border-color: #e3342f !important;
+        }
+
+        #resumePreview {
+            width: 200px;
+            height: 250px;
+            cursor: pointer;
+        }
+
+        #resumePreview.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        #closeFullscreen {
+            display: none;
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            z-index: 1001;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        #downloadResume {
+            margin-top: 10px;
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #4a90e2;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        #downloadResume:hover {
+            background-color: #357ab8;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">Resume Generator</h1>
+        <p class="text-center text-gray-700 mb-6">Enter your details to generate a personalized resume based on the ATLAS template.</p>
+        
+        <!-- Navigation -->
+        <nav class="text-center mb-8">
+            <a href="/" class="text-blue-500 hover:text-blue-700 mx-2">Home</a>
+            <a href="/resume-generator" class="text-blue-500 hover:text-blue-700 mx-2">Resume Generator</a>
+            <a href="/internship-finder" class="text-blue-500 hover:text-blue-700 mx-2">Internship Finder</a>
+        </nav>
+
+        <!-- PDF Preview -->
+        <div class="text-center mb-8">
+            <h2 class="text-xl font-semibold mb-4">Sample Resume</h2>
+            <div id="resumePreviewContainer">
+                <embed id="resumePreview" src="/static/pdf/sample_resume.pdf" type="application/pdf">
+                <span id="closeFullscreen">&times; Close</span>
+            </div>
+            <p class="text-gray-600">Click to enlarge the resume preview.</p>
+            <a id="downloadResume" href="/static/pdf/sample_resume.pdf" download="sample_resume.pdf">Download Sample Resume</a>
+        </div>
+
+        <form id="resumeForm" action="/generate-resume" method="POST">
+            <!-- Personal Information -->
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-gray-700 tooltip">
+                    Name:
+                    <span class="tooltiptext">Enter your full name as you want it to appear on the resume.</span>
+                </label>
+                <input type="text" id="name" name="name" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+            <div class="mb-4">
+                <label for="profile_title" class="block text-sm font-medium text-gray-700 tooltip">
+                    Profile Title:
+                    <span class="tooltiptext">Example: Software Engineer, Data Scientist.</span>
+                </label>
+                <input type="text" id="profile_title" name="profile_title" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+            <div class="mb-4">
+                <label for="personal_profile" class="block text-sm font-medium text-gray-700 tooltip">
+                    Personal Profile:
+                    <span class="tooltiptext">A brief summary of your skills, experience, and goals.</span>
+                </label>
+                <textarea id="personal_profile" name="personal_profile" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required></textarea>
+            </div>
+
+            <!-- Internship Experience -->
+            <div class="mb-4">
+                <label for="internships" class="block text-sm font-medium text-gray-700 tooltip">
+                    Internship Experience:
+                    <span class="tooltiptext">List your internships. Example: Title, Company, Date Range, Description.</span>
+                </label>
+                <textarea id="internships" name="internships[]" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none" placeholder="Example: Title, Company, Date Range, Description" required></textarea>
+                <button type="button" id="addInternship" class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none">Add Another Internship</button>
+            </div>
+
+            <!-- Skills -->
+            <div class="mb-4">
+                <label for="skills" class="block text-sm font-medium text-gray-700 tooltip">
+                    Skills:
+                    <span class="tooltiptext">Separate each skill with a comma, e.g., Python, Machine Learning, Data Analysis.</span>
+                </label>
+                <textarea id="skills" name="skills[]" rows="2" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required></textarea>
+                <button type="button" id="addSkill" class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none">Add Another Skill</button>
+            </div>
+
+            <!-- Academic Profile -->
+            <div class="mb-4">
+                <label for="university" class="block text-sm font-medium text-gray-700 tooltip">
+                    University:
+                    <span class="tooltiptext">Enter the name of your university.</span>
+                </label>
+                <input type="text" id="university" name="university" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+            <div class="mb-4">
+                <label for="degree" class="block text-sm font-medium text-gray-700 tooltip">
+                    Degree:
+                    <span class="tooltiptext">Enter your degree (e.g., B.Tech in Computer Science).</span>
+                </label>
+                <input type="text" id="degree" name="degree" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+            <div class="mb-4">
+                <label for="cgpa" class="block text-sm font-medium text-gray-700 tooltip">
+                    CGPA:
+                    <span class="tooltiptext">Enter your CGPA (e.g., 8.5).</span>
+                </label>
+                <input type="text" id="cgpa" name="cgpa" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+
+            <!-- Positions of Responsibility -->
+            <div class="mb-4">
+                <label for="positions" class="block text-sm font-medium text-gray-700 tooltip">
+                    Positions of Responsibility:
+                    <span class="tooltiptext">List roles you held, e.g., Role, Organization, Date Range.</span>
+                </label>
+                <textarea id="positions" name="positions[]" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required></textarea>
+                <button type="button" id="addPosition" class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none">Add Another Position</button>
+            </div>
+
+            <!-- Projects -->
+            <div class="mb-4">
+                <label for="projects" class="block text-sm font-medium text-gray-700 tooltip">
+                    Projects:
+                    <span class="tooltiptext">Describe your projects. Example: Title, Description.</span>
+                </label>
+                <textarea id="projects" name="projects[]" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required></textarea>
+                <button type="button" id="addProject" class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none">Add Another Project</button>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700 tooltip">
+                    Email:
+                    <span class="tooltiptext">Provide a valid email address.</span>
+                </label>
+                <input type="email" id="email" name="email" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+            <div class="mb-4">
+                <label for="linkedin" class="block text-sm font-medium text-gray-700 tooltip">
+                    LinkedIn:
+                    <span class="tooltiptext">Provide your LinkedIn profile URL.</span>
+                </label>
+                <input type="text" id="linkedin" name="linkedin" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+            <div class="mb-4">
+                <label for="phone" class="block text-sm font-medium text-gray-700 tooltip">
+                    Phone:
+                    <span class="tooltiptext">Provide your contact number.</span>
+                </label>
+                <input type="text" id="phone" name="phone" class="w-full px-3 py-2 border rounded-lg focus:outline-none" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none">Generate Resume</button>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Function to add new internship fields
+            $('#addInternship').click(function() {
+                $('#internships').after('<textarea name="internships[]" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none mt-4" placeholder="Example: Title, Company, Date Range, Description" required></textarea>');
+            });
+
+            // Function to add new skill fields
+            $('#addSkill').click(function() {
+                $('#skills').after('<textarea name="skills[]" rows="2" class="w-full px-3 py-2 border rounded-lg focus:outline-none mt-4" placeholder="Separate each skill with a comma, e.g., Python, Machine Learning, Data Analysis" required></textarea>');
+            });
+
+            // Function to add new position fields
+            $('#addPosition').click(function() {
+                $('#positions').after('<textarea name="positions[]" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none mt-4" placeholder="Example: Role, Organization, Date Range" required></textarea>');
+            });
+
+            // Function to add new project fields
+            $('#addProject').click(function() {
+                $('#projects').after('<textarea name="projects[]" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none mt-4" placeholder="Example: Title, Description" required></textarea>');
+            });
+
+            // Simple form validation before submission
+            $('#resumeForm').submit(function(event) {
+                let valid = true;
+
+                // Basic validation
+                $('input, textarea').each(function() {
+                    if ($(this).val() === '') {
+                        valid = false;
+                        $(this).addClass('border-red-500');
+                    } else {
+                        $(this).removeClass('border-red-500');
+                    }
+                });
+
+                if (!valid) {
+                    alert('Please fill in all fields.');
+                    event.preventDefault();
+                }
+            });
+
+            // Fullscreen PDF preview
+            $('#resumePreview').click(function() {
+                $(this).toggleClass('fullscreen');
+                $('#closeFullscreen').toggle();
+            });
+
+            $('#closeFullscreen').click(function() {
+                $('#resumePreview').removeClass('fullscreen');
+                $(this).hide();
+            });
+        });
+    </script>
+</body>
+</html>

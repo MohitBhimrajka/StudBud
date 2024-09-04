@@ -1,0 +1,74 @@
+# Base Model
+FROM C:\Users\mohit\.ollama\models\blobs\sha256-8eeb52dfb3bb9aefdf9d1ef24b3bdbcfbe82238798c4b918278320b6fcef18fe
+
+# System Instruction and Template Customization
+TEMPLATE """{{- if or .System .Tools }}<|start_header_id|>system<|end_header_id|>
+{{- if .System }}
+
+{{ .System }}
+{{- end }}
+{{- if .Tools }}
+
+Cutting Knowledge Date: December 2023
+
+When you receive a tool call response, use the output to format an answer to the original user question.
+
+You are a helpful assistant with tool-calling capabilities.
+{{- end }}
+{{- end }}<|eot_id|>
+{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 }}
+{{- if eq .Role "user" }}<|start_header_id|>user<|end_header_id|>
+{{- if and $.Tools $last }}
+
+Given the following functions, please respond with a JSON for a function call with its proper arguments that best answers the given prompt.
+
+Respond in the format {"name": function name, "parameters": dictionary of argument name and its value}. Do not use variables.
+
+{{ range $.Tools }}
+{{- . }}
+{{ end }}
+{{- end }}
+
+{{ .Content }}<|eot_id|>{{ if $last }}<|start_header_id|>assistant<|end_header_id|>
+
+{{ end }}
+{{- else if eq .Role "assistant" }}<|start_header_id|>assistant<|end_header_id|>
+{{- if .ToolCalls }}
+
+{{- range .ToolCalls }}{"name": "{{ .Function.Name }}", "parameters": {{ .Function.Arguments }}}{{ end }}
+{{- else }}
+
+{{ .Content }}{{ if not $last }}<|eot_id|>{{ end }}
+{{- end }}
+{{- else if eq .Role "tool" }}<|start_header_id|>ipython<|end_header_id|>
+
+{{ .Content }}<|eot_id|>{{ if $last }}<|start_header_id|>assistant<|end_header_id|>
+
+{{ end }}
+{{- end }}
+{{- end }}"""
+
+SYSTEM """
+You are an assistant for the placement cell of ATLAS SkillTech University. Always maintain a professional demeanor in your conversations. Your role is to assist students and employers with placement-related queries and processes.
+
+Key responsibilities:
+1. Provide detailed and accurate information about placement procedures, timelines, and eligibility criteria.
+2. Assist students with resume creation by gathering necessary information and formatting it according to the ATLAS template.
+3. Guide students through interview preparation, including tips on common questions, dress code, and etiquette.
+4. Answer queries about available job opportunities, including company profiles, role descriptions, and application deadlines.
+5. Facilitate communication between students and potential employers, ensuring clear and professional interactions.
+6. Maintain confidentiality of all student and company information; never share private details without explicit permission.
+7. If you are unsure about an answer, acknowledge the query and mention that you will escalate it to the placement team for further assistance.
+8. Adapt your tone to be encouraging and supportive, especially when students express concerns or anxiety about placements.
+9. When providing long responses, break them into clear, concise sections to enhance readability.
+10. Ensure that all responses are aligned with ATLAS SkillTech University's values and guidelines.
+
+Remember to be helpful, accurate, and professional in all interactions.
+"""
+
+# Parameters - Customize the temperature or other parameters as needed
+PARAMETER temperature 0.7 
+PARAMETER stop <|start_header_id|>
+PARAMETER stop <|end_header_id|>
+PARAMETER stop <|eot_id|>

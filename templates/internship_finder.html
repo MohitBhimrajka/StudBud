@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internship Finder - ATLAS SkillTech Placement Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">Internship Finder</h1>
+        <p class="text-center text-gray-700 mb-6">Find internships that match your skills and career goals.</p>
+        
+        <!-- Navigation -->
+        <nav class="text-center mb-8">
+            <a href="/" class="text-blue-500 hover:text-blue-700 mx-2">Home</a>
+            <a href="/resume-generator" class="text-blue-500 hover:text-blue-700 mx-2">Resume Generator</a>
+            <a href="/internship-finder" class="text-blue-500 hover:text-blue-700 mx-2">Internship Finder</a>
+        </nav>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Available Internships</h2>
+            <ul>
+                {% for internship in internships %}
+                    <li class="mb-4 p-4 border-b-2 border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ internship.title }}</h3>
+                        <p class="text-gray-600">{{ internship.company }} - {{ internship.location }}</p>
+                        <p class="text-gray-600">{{ internship.description }}</p>
+                        <p class="text-gray-500 text-sm mb-4">{{ internship.date_range }}</p>
+                        <button class="show-interest bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none">Show Interest</button>
+                        <p class="interest-message hidden text-green-600 mt-2">Your interest has been noted! The placement team will contact you soon.</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Handle "Show Interest" button click
+            $('.show-interest').click(function() {
+                $(this).next('.interest-message').removeClass('hidden');
+                $(this).prop('disabled', true).text('Interest Noted');
+            });
+        });
+    </script>
+</body>
+</html>
